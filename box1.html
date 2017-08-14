@@ -18,19 +18,142 @@
 		renderer.setSize( window.innerWidth, window.innerHeight );
 		document.body.appendChild( renderer.domElement );
 
-
-		var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-		var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+		var geometry = new THREE.BoxGeometry( 2, 2, 2 );
+		// scene.add(new THREE.DirectionalLight(0xffffff,1.0));
+		var material = new THREE.MeshBasicMaterial( { color: 0x838484 } );
 		var cube = new THREE.Mesh( geometry, material );
 		scene.add( cube );
 
-		camera.position.z = 5;
+		camera.position.z = 15;
+
+		goingRight = true;
+
+		// +++ Many cube variables +++ ///
+
+		//Cube creation
+		var numOfCubes = 0;
+
+		//ACTIVATE THE COOL STUFF
+		var isMoving = false;
+		var isRandSpeedActivated = false;
+		var isRandomColor = false;
+
+		var maxPosX = 20; // + and -
+		var maxPosY = 20; // + and -
+		var colorArray = [ 0x4a8ee8, 0x9256b5, 0xaf5767, 0x46af85, 0xe0bb55, 0xef895d, 0xd64e44, 0x94e5e8];
+
+		// Animation
+		var speed = 0.2; // currently using random
+		var maxX = 35;
+		var minX = -35;
+		var maxY = 35;
+		var minY = -35;
+		var maxZ = 10;
+		var minX = -10;
+
+		function createCubes () {
+			var arrOfCubes = [];
+			for (var i = 0; i < numOfCubes; i++) {
+
+				// ++++ CUBE CREATION VARIABLES +++
+				var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+
+				//random color picker
+				var randColor;
+				if(isRandomColor) randColor = colorArray[Math.floor(Math.random() * 7)];
+				else randColor = 0x00ff00;
+				var material = new THREE.MeshBasicMaterial( { color: randColor } );
+				var cube = new THREE.Mesh( geometry, material );
+
+				//Random position spawning
+				cube.position.y = Math.floor(Math.random() * (maxPosY * 2)) + 1 - maxPosY;
+				cube.position.x = Math.floor(Math.random() * (maxPosX * 2)) + 1 - maxPosX;
+
+				//direction
+				var dir = Math.floor(Math.random() * 4) + 1 ;
+
+				//speed
+				var speed;
+				if(isRandSpeedActivated === true) speed = Math.random();
+				else speed = 0.2;
+
+				arrOfCubes.push( {
+					shape: cube,
+					direction: dir,
+					speed: speed
+				});
+				//console.log("CREATED :", dir);
+				scene.add( cube );
+			}
+			return arrOfCubes;
+		}
+
+		var arr = createCubes();
+
+		function changeDirection(curCube, direction) {
+			if( direction === 1 && curCube.position.x >= maxX ) { // right, x +
+				return 2;
+			} else if (direction === 2 && curCube.position.x <= minX ) { //left x -
+				return 1;
+			} else if (direction === 3 && curCube.position.y >= maxY ) { //up y +
+				return 4;
+			} else if (direction === 4 && curCube.position.y <= minY ){ //down y -
+				return 3;
+			} else {
+				return direction;
+			}
+		}
+
+
+		function animateCubes(arrOfCubes) {
+
+			for (var i = 0; i < arrOfCubes.length; i++) {
+				//var direction = Math.floor(Math.random() * 4) + 1; // 1 - 4
+				var curCube = arrOfCubes[i].shape;
+				var curDir = arrOfCubes[i].direction;
+				var speed = arrOfCubes[i].speed;
+
+				//console.log("curCube direction : ", direction);
+
+				if(curDir === 1 ) { // right, x +
+					curCube.position.x += speed;
+				} else if (curDir === 2) { //left x -
+					curCube.position.x -= speed;
+				} else if (curDir === 3) { //up y +
+					curCube.position.y += speed;
+				} else if (curDir === 4) { //down y -
+					curCube.position.y -= speed;
+				}
+
+				var newDirection = changeDirection(curCube, curDir);
+				if( newDirection !== curDir)	{
+					console.log("curDir: ", curDir, " newDirection :", newDirection);
+					arrOfCubes[i].direction = newDirection;
+				}
+			}
+		}
 
 		function animate() {
-		requestAnimationFrame( animate );
-		cube.rotation.x += 0.05;
-		cube.rotation.y += 0.05;
-		renderer.render( scene, camera );
+			requestAnimationFrame( animate );
+			animateCubes(arr);
+			//cube.rotation.x += 0.05;
+			//cube.rotation.y += 0.05;
+
+			if(isMoving) {
+				if(goingRight){
+					cube.position.x += .3;
+				}else{
+					cube.position.x -= .4;
+				}
+			}
+
+
+			if (goingRight && cube.position.x >= 35 ) {
+				goingRight = false; //goes other way
+			} else if ( cube.position.x <= -35 ) {
+				goingRight = true;
+			}
+			renderer.render( scene, camera );
 		}
 		animate();
 		</script>
